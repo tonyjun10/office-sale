@@ -203,8 +203,8 @@
       <!-- Category tabs -->
       <div class="cat-tabs">
         <button class="cat-tab active" onclick="filterCat('all', this)">{{ tx.all }}</button>
-        {% for cat in categories %}
-        <button class="cat-tab" onclick="filterCat('{{ cat }}', this)">{{ cat }}</button>
+        {% for cat, items in categories.items() %}
+        <button class="cat-tab" onclick="filterCat('{{ cat }}', this)">{{ items[0].category_en if lang == 'en' else cat }}</button>
         {% endfor %}
       </div>
 
@@ -215,19 +215,21 @@
         <div class="item-card {{ 'sold-out' if item.qty_available == 0 }}"
              data-id="{{ item.id }}"
              data-cat="{{ item.category }}"
+             data-cat-en="{{ item.category_en }}"
              data-price="{{ item.price }}"
              data-max="{{ item.qty_available }}"
              data-name="{{ item.name }}">
           {% if item.qty_available == 0 %}
           <div class="sold-out-badge">{{ tx.sold_out }}</div>
           {% endif %}
-          <div class="item-category-badge">{{ item.category }}</div>
-          <div class="item-name">{{ item.name }}</div>
+          <div class="item-category-badge">{{ item.category_en if lang == "en" and item.category_en else item.category }}</div>
+          <div class="item-name">{{ item.name_en if lang == "en" and item.name_en else item.name }}</div>
           {% if item.brand and item.brand != '-' %}
           <div class="item-brand">{{ item.brand }}</div>
           {% endif %}
-          {% if item.notes %}
-          <div><span class="item-notes">{{ item.notes }}</span></div>
+          {% set display_notes = (item.notes_en if lang == "en" and item.notes_en else item.notes) %}
+          {% if display_notes %}
+          <div><span class="item-notes">{{ display_notes }}</span></div>
           {% endif %}
           <div class="item-price">₩{{ "{:,}".format(item.price) }}</div>
           <div class="item-stock">{{ tx.remaining }}: {{ item.qty_available }}</div>
@@ -357,7 +359,7 @@ function filterCat(cat, btn) {
   document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   document.querySelectorAll('.item-card').forEach(card => {
-    card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+    card.style.display = (cat === 'all' || card.dataset.cat === cat || card.dataset.catEn === cat) ? '' : 'none';
   });
 }
 

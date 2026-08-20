@@ -75,6 +75,6 @@ ITEMS = [
     {"category": "전자기기", "category_en": "Electronics", "name": "문서파쇄기 2300N", "name_en": "2300N Paper Shredder", "brand": "Sindoh", "qty": 1, "price": 60000, "notes": "", "notes_en": ""},
     # 추가 항목
     {"category": "전자기기", "category_en": "Electronics", "name": "마샬 스피커", "name_en": "Marshall Speaker", "brand": "Marshall", "qty": 1, "price": 50000, "notes": "", "notes_en": ""},
-    {"category": "전자기기", "category_en": "Electronics", "name": "Blue Yeti A00104 마이크", "name_en": "Blue Yeti A00104 Microphone", "brand": "Blue", "qty": 1, "price": 40000, "notes": "", "notes_en": ""},
-    {"category": "전자기기", "category_en": "Electronics", "name": "와이어링 제본기 WS-3200", "name_en": "Wiring Binding Machine WS-3200", "brand": "와이어링", "qty": 1, "price": 50000, "notes": "", "notes_en": ""},
+    {"category": "전자기기", "category_en": "Electronics", "name": "Blue Yeti A00104 마이크", "name_en": "Blue Yeti A00104 Microphone", "brand": "Blue Yeti", "qty": 1, "price": 40000, "notes": "", "notes_en": ""},
+    {"category": "가구", "category_en": "Furniture", "name": "와이어링 제본기 WS-3200", "name_en": "Wiring Binding Machine WS-3200", "brand": "와이어링", "qty": 1, "price": 50000, "notes": "", "notes_en": ""},
 ]

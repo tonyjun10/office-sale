@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 대시보드 / Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f5f5f5;--surface:#fff;--border:#d9d9d9;--text:#111;--text-muted:#888;--shadow:0 2px 12px rgba(0,0,0,0.07);}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);}
+    .admin-header{background:var(--text);color:#fff;padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+    .admin-header h1{font-size:1rem;font-weight:700;}
+    .admin-badge{font-family:'Space Mono',monospace;font-size:0.7rem;font-weight:700;letter-spacing:0.08em;background:#fff;color:var(--text);padding:0.15rem 0.5rem;border-radius:4px;}
+    .header-left{display:flex;align-items:center;gap:1rem;}
+    .header-actions{display:flex;gap:0.75rem;}
+    .btn{display:inline-flex;align-items:center;gap:0.35rem;padding:0.45rem 1rem;border-radius:6px;border:1.5px solid;font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;text-decoration:none;transition:all 0.15s;}
+    .btn-dark{background:#111;color:#fff;border-color:#111;}.btn-dark:hover{background:#333;}
+    .btn-outline{background:transparent;color:#fff;border-color:rgba(255,255,255,0.3);}.btn-outline:hover{border-color:#fff;}
+    .btn-sm{padding:0.25rem 0.6rem;font-size:0.75rem;border-radius:5px;}
+    .btn-pending{background:#f5f5f5;color:#555;border-color:#d9d9d9;}
+    .btn-paid{background:#e6f7ff;color:#096dd9;border-color:#91d5ff;}
+    .btn-fulfilled{background:#f6ffed;color:#389e0d;border-color:#b7eb8f;}
+    .btn-cancelled{background:#fff1f0;color:#cf1322;border-color:#ffa39e;}
+    .container{max-width:1200px;margin:0 auto;padding:2rem 1.5rem;}
+    .stats-bar{display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;}
+    .stat-card{background:var(--surface);border:2px solid var(--border);border-radius:10px;padding:1rem 1.5rem;flex:1;min-width:140px;}
+    .stat-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-family:'Space Mono',monospace;margin-bottom:0.3rem;}
+    .stat-value{font-size:1.8rem;font-weight:700;font-family:'Space Mono',monospace;}
+    .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+    .section-title{font-family:'Space Mono',monospace;font-weight:700;font-size:0.85rem;letter-spacing:0.05em;}
+    .filter-bar{display:flex;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;}
+    .search-filter{flex:1;min-width:200px;padding:0.6rem 1rem;border:2px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit;background:var(--surface);outline:none;}
+    .search-filter:focus{border-color:var(--text);}
+    .status-filter{padding:0.6rem 1rem;border:2px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;background:var(--surface);outline:none;cursor:pointer;}
+    .table-wrap{background:var(--surface);border:2px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:2rem;}
+    table{width:100%;border-collapse:collapse;}
+    thead{background:var(--text);color:#fff;}
+    th{padding:0.9rem 1rem;text-align:left;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;font-family:'Space Mono',monospace;white-space:nowrap;}
+    td{padding:0.85rem 1rem;border-bottom:1px solid var(--border);vertical-align:middle;font-size:0.88rem;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:#fafaf8;}
+    .name-cell{font-weight:700;}
+    .phone-cell{font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--text-muted);}
+    .item-cell{font-weight:600;}
+    .price-cell{font-family:'Space Mono',monospace;font-weight:700;}
+    .timestamp{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--text-muted);}
+    .status-badge{display:inline-block;padding:0.2rem 0.6rem;border-radius:5px;font-size:0.72rem;font-family:'Space Mono',monospace;font-weight:700;}
+    .status-pending{background:#f5f5f5;color:#555;}
+    .status-paid{background:#e6f7ff;color:#096dd9;}
+    .status-fulfilled{background:#f6ffed;color:#389e0d;}
+    .status-cancelled{background:#fff1f0;color:#cf1322;}
+    .empty-state{text-align:center;padding:4rem 2rem;color:var(--text-muted);}
+    .empty-icon{font-size:3rem;margin-bottom:0.75rem;}
+    .action-form{display:inline;}
+    select.status-select{padding:0.25rem 0.5rem;border:1.5px solid var(--border);border-radius:5px;font-size:0.78rem;font-family:inherit;cursor:pointer;background:var(--bg);}
+  </style>
+</head>
+<body>
+<header class="admin-header">
+  <div class="header-left">
+    <span class="admin-badge">ADMIN</span>
+    <h1>물품 판매 관리 · Office Sale Dashboard</h1>
+  </div>
+  <div class="header-actions">
+    <a href="/admin/items" class="btn btn-outline">📦 재고 관리</a>
+    <a href="/admin/export" class="btn btn-dark">⬇ CSV</a>
+    <a href="/admin/logout" class="btn btn-outline">로그아웃</a>
+  </div>
+</header>
+
+<div class="container">
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">총 주문 / Total Orders</div>
+      <div class="stat-value">{{ orders|length }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">결제 완료 / Paid</div>
+      <div class="stat-value">{{ orders|selectattr('status','eq','paid')|list|length }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">대기 중 / Pending</div>
+      <div class="stat-value">{{ orders|selectattr('status','eq','pending')|list|length }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">총 매출 / Revenue</div>
+      <div class="stat-value" style="font-size:1.2rem;padding-top:0.3rem;">₩{{ "{:,}".format(total_revenue) }}</div>
+    </div>
+  </div>
+
+  <!-- Orders -->
+  <div class="section-header">
+    <div class="section-title">📋 주문 목록 / ORDERS</div>
+  </div>
+  <div class="filter-bar">
+    <input class="search-filter" type="text" id="filterInput" placeholder="이름, 물품명 검색... / Filter by name or item..." oninput="filterTable()">
+    <select class="status-filter" id="statusFilter" onchange="filterTable()">
+      <option value="">전체 상태 / All Status</option>
+      <option value="pending">대기 중 / Pending</option>
+      <option value="paid">결제 완료 / Paid</option>
+      <option value="fulfilled">수령 완료 / Fulfilled</option>
+      <option value="cancelled">취소 / Cancelled</option>
+    </select>
+  </div>
+
+  <div class="table-wrap">
+    {% if orders %}
+    <table id="orderTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>이름 / Name</th>
+          <th>전화번호 / Phone</th>
+          <th>물품 / Item</th>
+          <th>수량 / Qty</th>
+          <th>금액 / Amount</th>
+          <th>상태 / Status</th>
+          <th>시간 / Time</th>
+          <th>변경 / Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr data-status="{{ order['status'] }}">
+          <td><span style="font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--text-muted);">{{ order['id'] }}</span></td>
+          <td class="name-cell">{{ order['requester_name'] }}</td>
+          <td class="phone-cell">{{ order['phone'] }}</td>
+          <td class="item-cell">{{ order['item_name'] }}</td>
+          <td style="font-family:'Space Mono',monospace;">{{ order['qty'] }}</td>
+          <td class="price-cell">₩{{ "{:,}".format(order['total_price']) }}</td>
+          <td>
+            <span class="status-badge status-{{ order['status'] }}">
+              {% if order['status'] == 'pending' %}대기중
+              {% elif order['status'] == 'paid' %}결제완료
+              {% elif order['status'] == 'fulfilled' %}수령완료
+              {% elif order['status'] == 'cancelled' %}취소{% endif %}
+            </span>
+          </td>
+          <td class="timestamp">{{ order['timestamp'] }}</td>
+          <td>
+            <form method="POST" action="/admin/order/{{ order['id'] }}/status" class="action-form">
+              <select name="status" class="status-select" onchange="this.form.submit()">
+                <option value="pending" {{ 'selected' if order['status'] == 'pending' }}>대기중</option>
+                <option value="paid" {{ 'selected' if order['status'] == 'paid' }}>결제완료</option>
+                <option value="fulfilled" {{ 'selected' if order['status'] == 'fulfilled' }}>수령완료</option>
+                <option value="cancelled" {{ 'selected' if order['status'] == 'cancelled' }}>취소</option>
+              </select>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <p>아직 주문이 없습니다. / No orders yet.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function filterTable() {
+  const q = document.getElementById('filterInput').value.toLowerCase();
+  const status = document.getElementById('statusFilter').value;
+  document.querySelectorAll('#orderTable tbody tr').forEach(row => {
+    const matchText = row.textContent.toLowerCase().includes(q);
+    const matchStatus = !status || row.dataset.status === status;
+    row.style.display = matchText && matchStatus ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

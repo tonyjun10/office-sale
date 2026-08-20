@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+{% block extra_css %}
+.hero { text-align:center; padding:2rem 0 2.5rem; }
+.hero h1 { font-size:clamp(1.8rem,4vw,2.4rem); font-weight:700; letter-spacing:-0.03em; margin-bottom:0.5rem; }
+.hero p { color:var(--text-muted); font-size:0.95rem; max-width:500px; margin:0 auto 1.25rem; }
+.hero-actions { display:flex; gap:0.75rem; justify-content:center; flex-wrap:wrap; }
+
+.step-card { background:var(--surface); border:2px solid var(--border); border-radius:var(--radius); padding:1.75rem; margin-bottom:1.25rem; box-shadow:var(--shadow); }
+.step-num { font-family:var(--font-mono); font-size:0.72rem; font-weight:700; letter-spacing:0.08em; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem; }
+.step-num::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.name-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+@media(max-width:600px) { .name-row { grid-template-columns:1fr; } }
+
+/* Category tabs */
+.cat-tabs { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+.cat-tab {
+  padding:0.4rem 1rem; border-radius:999px;
+  border:2px solid var(--border); background:var(--surface);
+  font-size:0.82rem; font-weight:700; cursor:pointer;
+  font-family:var(--font-body); transition:all 0.15s;
+}
+.cat-tab.active { background:var(--text); color:#fff; border-color:var(--text); }
+.cat-tab:hover:not(.active) { border-color:var(--text); }
+
+/* Item grid */
+.item-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:0.875rem; }
+.item-card {
+  border:2px solid var(--border); border-radius:10px;
+  background:var(--surface); padding:1rem;
+  display:flex; flex-direction:column; gap:0.4rem;
+  transition:all 0.15s; position:relative;
+}
+.item-card:not(.sold-out):hover { border-color:var(--text); transform:translateY(-1px); box-shadow:0 4px 16px rgba(0,0,0,0.09); }
+.item-card.sold-out { opacity:0.5; }
+.item-category-badge { font-size:0.68rem; font-family:var(--font-mono); font-weight:700; color:var(--text-muted); letter-spacing:0.05em; text-transform:uppercase; }
+.item-name { font-weight:700; font-size:0.92rem; line-height:1.35; }
+.item-brand { font-size:0.78rem; color:var(--text-muted); }
+.item-price { font-family:var(--font-mono); font-weight:700; font-size:1rem; margin-top:auto; padding-top:0.5rem; }
+.item-stock { font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono); }
+.item-notes { font-size:0.72rem; color:var(--text-muted); background:var(--accent-soft); padding:0.2rem 0.5rem; border-radius:4px; display:inline-block; }
+.sold-out-badge {
+  position:absolute; top:0.6rem; right:0.6rem;
+  background:var(--text); color:#fff;
+  font-size:0.68rem; font-family:var(--font-mono); font-weight:700;
+  padding:0.15rem 0.5rem; border-radius:4px; letter-spacing:0.04em;
+}
+
+.item-qty-row { display:flex; align-items:center; gap:0.5rem; margin-top:0.5rem; }
+.qty-btn {
+  width:28px; height:28px; border-radius:6px;
+  border:1.5px solid var(--border); background:var(--bg);
+  font-weight:700; font-size:1rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all 0.12s;
+}
+.qty-btn:hover { border-color:var(--text); background:var(--text); color:#fff; }
+.qty-display { font-family:var(--font-mono); font-weight:700; font-size:0.9rem; min-width:20px; text-align:center; }
+.add-btn {
+  flex:1; padding:0.4rem; background:var(--accent-soft);
+  border:1.5px solid var(--border); border-radius:6px;
+  font-size:0.78rem; font-weight:700; font-family:var(--font-body);
+  cursor:pointer; transition:all 0.15s; text-align:center;
+}
+.add-btn:hover { background:var(--text); color:#fff; border-color:var(--text); }
+.item-card.in-cart .add-btn { background:var(--text); color:#fff; border-color:var(--text); }
+
+/* Cart */
+.cart-panel { background:var(--surface); border:2px solid var(--text); border-radius:var(--radius); padding:1.5rem; margin-bottom:1.25rem; position:sticky; bottom:1.5rem; z-index:50; box-shadow:var(--shadow); }
+.cart-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+.cart-title { font-family:var(--font-mono); font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:0.5rem; }
+.cart-count-bubble { background:var(--text); color:#fff; border-radius:999px; padding:0.1rem 0.5rem; font-size:0.75rem; }
+.cart-items { display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.25rem; }
+.cart-item { display:flex; align-items:center; gap:0.75rem; padding:0.6rem 0.75rem; background:var(--bg); border-radius:8px; border:1.5px solid var(--border); }
+.cart-item-info { flex:1; min-width:0; }
+.cart-item-name { font-size:0.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cart-item-meta { font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono); }
+.cart-item-remove { background:none; border:1.5px solid var(--border); border-radius:5px; color:var(--text-muted); cursor:pointer; padding:0.2rem 0.45rem; font-size:0.8rem; transition:all 0.15s; }
+.cart-item-remove:hover { border-color:#ff4d4f; color:#ff4d4f; }
+.cart-total { font-family:var(--font-mono); font-weight:700; font-size:1rem; text-align:right; margin-bottom:1rem; }
+.cart-empty { text-align:center; color:var(--text-muted); font-size:0.85rem; padding:0.75rem 0; }
+
+.success-screen { text-align:center; padding:3rem 2rem; }
+.success-icon { font-size:3.5rem; margin-bottom:1rem; display:block; animation:pop 0.4s cubic-bezier(0.175,0.885,0.32,1.275); }
+@keyframes pop { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+.success-screen h2 { font-size:1.6rem; font-weight:700; margin-bottom:0.5rem; }
+.success-screen p { color:var(--text-muted); }
+.success-items { margin:1.5rem auto; max-width:400px; text-align:left; display:flex; flex-direction:column; gap:0.5rem; }
+.success-item { display:flex; align-items:center; justify-content:space-between; padding:0.5rem 0.75rem; background:var(--accent-soft); border:1.5px solid var(--border); border-radius:8px; font-size:0.85rem; }
+{% endblock %}
+
+{% block content %}
+{% set t = {
+  'ko': {
+    'h1': '사무실 물품 판매 🏢',
+    'sub': '아래 물품들을 선착순으로 구매하실 수 있습니다. 원하는 항목을 장바구니에 담고 주문해 주세요.',
+    'view_photos': '📷 사진 보기',
+    'bank_info': '🏦 계좌 정보',
+    'step1': '01 — 주문자 정보',
+    'name_label': '이름',
+    'name_placeholder': '홍길동',
+    'phone_label': '휴대폰 번호 (현금영수증용)',
+    'phone_placeholder': '010-0000-0000',
+    'step2': '02 — 물품 선택',
+    'step2_hint': '원하는 물품을 장바구니에 담으세요.',
+    'sold_out': '품절',
+    'remaining': '남은 수량',
+    'add_to_cart': '+ 장바구니',
+    'in_cart': '✓ 담김',
+    'cart_title': '장바구니',
+    'cart_empty': '아직 담은 물품이 없어요.',
+    'total': '합계',
+    'submit_btn': '주문하기',
+    'name_required': '이름을 입력해 주세요.',
+    'phone_required': '휴대폰 번호를 입력해 주세요.',
+    'cart_empty_warn': '장바구니가 비어 있습니다.',
+    'success_title': '주문 완료! 🎉',
+    'success_msg': '아래 계좌로 입금해 주시면 처리해 드리겠습니다.',
+    'new_order': '새 주문하기',
+    'qty': '수량',
+    'all': '전체',
+  },
+  'en': {
+    'h1': 'Office Items For Sale 🏢',
+    'sub': 'First come, first served. Add items to your cart and place your order.',
+    'view_photos': '📷 View Photos',
+    'bank_info': '🏦 Bank Info',
+    'step1': '01 — Your Info',
+    'name_label': 'Name',
+    'name_placeholder': 'Jane Smith',
+    'phone_label': 'Phone Number (for cash receipt)',
+    'phone_placeholder': '010-0000-0000',
+    'step2': '02 — Select Items',
+    'step2_hint': 'Add items to your cart.',
+    'sold_out': 'SOLD OUT',
+    'remaining': 'Remaining',
+    'add_to_cart': '+ Add',
+    'in_cart': '✓ Added',
+    'cart_title': 'Cart',
+    'cart_empty': 'Your cart is empty.',
+    'total': 'Total',
+    'submit_btn': 'Place Order',
+    'name_required': 'Please enter your name.',
+    'phone_required': 'Please enter your phone number.',
+    'cart_empty_warn': 'Your cart is empty.',
+    'success_title': 'Order Placed! 🎉',
+    'success_msg': 'Please transfer the total to the account below to complete your order.',
+    'new_order': 'New Order',
+    'qty': 'Qty',
+    'all': 'All',
+  }
+} %}
+{% set tx = t[lang] %}
+
+<div class="container">
+  <!-- Success screen -->
+  <div id="successScreen" style="display:none;">
+    <div class="success-screen">
+      <span class="success-icon">🎉</span>
+      <h2>{{ tx.success_title }}</h2>
+      <p>{{ tx.success_msg }}</p>
+      <div style="margin:1.25rem auto; max-width:320px; background:var(--accent-soft); border:2px solid var(--text); border-radius:12px; padding:1.25rem; text-align:center;">
+        <div style="font-family:var(--font-mono); font-weight:700; font-size:1.2rem; margin-bottom:0.25rem;">{{ bank_account }}</div>
+        <div style="font-size:0.85rem; color:var(--text-muted);">{{ bank_name }} · {{ bank_holder }}</div>
+      </div>
+      <div class="success-items" id="successItems"></div>
+      <div style="font-family:var(--font-mono); font-weight:700; font-size:1.1rem; margin-bottom:1.5rem;" id="successTotal"></div>
+      <button class="btn btn-primary" onclick="resetForm()">{{ tx.new_order }}</button>
+    </div>
+  </div>
+
+  <!-- Main form -->
+  <div id="mainForm">
+    <div class="hero">
+      <h1>{{ tx.h1 }}</h1>
+      <p>{{ tx.sub }}</p>
+      <div class="hero-actions">
+        <a href="{{ photos_url }}" target="_blank" class="btn">{{ tx.view_photos }}</a>
+        <button class="btn" onclick="document.getElementById('bankModal').style.display='flex'">{{ tx.bank_info }}</button>
+      </div>
+    </div>
+
+    <!-- Step 1: Info -->
+    <div class="step-card">
+      <div class="step-num">{{ tx.step1 }}</div>
+      <div class="name-row">
+        <div class="form-group">
+          <label class="form-label">{{ tx.name_label }}</label>
+          <input class="form-input" id="nameInput" type="text" placeholder="{{ tx.name_placeholder }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ tx.phone_label }}</label>
+          <input class="form-input" id="phoneInput" type="tel" placeholder="{{ tx.phone_placeholder }}">
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Items -->
+    <div class="step-card">
+      <div class="step-num">{{ tx.step2 }}</div>
+      <p style="font-size:0.83rem; color:var(--text-muted); margin-bottom:1rem;">{{ tx.step2_hint }}</p>
+
+      <!-- Category tabs -->
+      <div class="cat-tabs">
+        <button class="cat-tab active" onclick="filterCat('all', this)">{{ tx.all }}</button>
+        {% for cat in categories %}
+        <button class="cat-tab" onclick="filterCat('{{ cat }}', this)">{{ cat }}</button>
+        {% endfor %}
+      </div>
+
+      <!-- Item grid -->
+      <div class="item-grid" id="itemGrid">
+        {% for cat, items in categories.items() %}
+        {% for item in items %}
+        <div class="item-card {{ 'sold-out' if item.qty_available == 0 }}"
+             data-id="{{ item.id }}"
+             data-cat="{{ item.category }}"
+             data-price="{{ item.price }}"
+             data-max="{{ item.qty_available }}"
+             data-name="{{ item.name }}">
+          {% if item.qty_available == 0 %}
+          <div class="sold-out-badge">{{ tx.sold_out }}</div>
+          {% endif %}
+          <div class="item-category-badge">{{ item.category }}</div>
+          <div class="item-name">{{ item.name }}</div>
+          {% if item.brand and item.brand != '-' %}
+          <div class="item-brand">{{ item.brand }}</div>
+          {% endif %}
+          {% if item.notes %}
+          <div><span class="item-notes">{{ item.notes }}</span></div>
+          {% endif %}
+          <div class="item-price">₩{{ "{:,}".format(item.price) }}</div>
+          <div class="item-stock">{{ tx.remaining }}: {{ item.qty_available }}</div>
+          {% if item.qty_available > 0 %}
+          <div class="item-qty-row">
+            <button class="qty-btn" onclick="changeQty({{ item.id }}, -1)">−</button>
+            <span class="qty-display" id="qty-{{ item.id }}">1</span>
+            <button class="qty-btn" onclick="changeQty({{ item.id }}, 1)">+</button>
+            <button class="add-btn" id="add-{{ item.id }}" onclick="toggleCart({{ item.id }})">
+              {{ tx.add_to_cart }}
+            </button>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Cart -->
+    <div class="cart-panel">
+      <div class="cart-header">
+        <div class="cart-title">🛒 {{ tx.cart_title }} <span class="cart-count-bubble" id="cartCount">0</span></div>
+      </div>
+      <div id="cartItems"><div class="cart-empty">{{ tx.cart_empty }}</div></div>
+      <div class="cart-total" id="cartTotal" style="display:none;">{{ tx.total }}: <span id="cartTotalAmt"></span></div>
+      <button class="btn btn-primary" style="width:100%;" onclick="submitOrder()" id="submitBtn">{{ tx.submit_btn }}</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TX = {{ t | tojson }};
+const LANG = "{{ lang }}";
+const tx = TX[LANG];
+
+let cart = {}; // {item_id: {name, price, qty, max}}
+let itemQtys = {}; // {item_id: selected_qty}
+
+// Init qty selectors
+document.querySelectorAll('.item-card').forEach(card => {
+  const id = card.dataset.id;
+  itemQtys[id] = 1;
+});
+
+function changeQty(id, delta) {
+  const card = document.querySelector(`[data-id="${id}"]`);
+  const max = parseInt(card.dataset.max);
+  const current = itemQtys[id] || 1;
+  const newVal = Math.max(1, Math.min(max, current + delta));
+  itemQtys[id] = newVal;
+  document.getElementById(`qty-${id}`).textContent = newVal;
+  // If already in cart, update
+  if (cart[id]) {
+    cart[id].qty = newVal;
+    cart[id].total = cart[id].price * newVal;
+    renderCart();
+  }
+}
+
+function toggleCart(id) {
+  const card = document.querySelector(`[data-id="${id}"]`);
+  const name = card.dataset.name;
+  const price = parseInt(card.dataset.price);
+  const qty = itemQtys[id] || 1;
+  const btn = document.getElementById(`add-${id}`);
+
+  if (cart[id]) {
+    delete cart[id];
+    card.classList.remove('in-cart');
+    btn.textContent = tx.add_to_cart;
+  } else {
+    cart[id] = { name, price, qty, total: price * qty };
+    card.classList.add('in-cart');
+    btn.textContent = tx.in_cart;
+  }
+  renderCart();
+}
+
+function renderCart() {
+  const container = document.getElementById('cartItems');
+  const countEl = document.getElementById('cartCount');
+  const totalEl = document.getElementById('cartTotal');
+  const totalAmt = document.getElementById('cartTotalAmt');
+
+  const ids = Object.keys(cart);
+  countEl.textContent = ids.length;
+
+  if (!ids.length) {
+    container.innerHTML = `<div class="cart-empty">${tx.cart_empty}</div>`;
+    totalEl.style.display = 'none';
+    return;
+  }
+
+  let grandTotal = 0;
+  container.innerHTML = '';
+  const list = document.createElement('div');
+  list.className = 'cart-items';
+  ids.forEach(id => {
+    const item = cart[id];
+    grandTotal += item.total;
+    const el = document.createElement('div');
+    el.className = 'cart-item';
+    el.innerHTML = `
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-meta">${tx.qty}: ${item.qty} · ₩${item.total.toLocaleString()}</div>
+      </div>
+      <button class="cart-item-remove" onclick="removeFromCart(${id})">✕</button>`;
+    list.appendChild(el);
+  });
+  container.appendChild(list);
+  totalEl.style.display = 'block';
+  totalAmt.textContent = `₩${grandTotal.toLocaleString()}`;
+}
+
+function removeFromCart(id) {
+  delete cart[id];
+  const card = document.querySelector(`[data-id="${id}"]`);
+  card.classList.remove('in-cart');
+  const btn = document.getElementById(`add-${id}`);
+  if (btn) btn.textContent = tx.add_to_cart;
+  renderCart();
+}
+
+function filterCat(cat, btn) {
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.item-card').forEach(card => {
+    card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+  });
+}
+
+async function submitOrder() {
+  const name = document.getElementById('nameInput').value.trim();
+  const phone = document.getElementById('phoneInput').value.trim();
+  if (!name) { alert(tx.name_required); return; }
+  if (!phone) { alert(tx.phone_required); return; }
+  if (!Object.keys(cart).length) { alert(tx.cart_empty_warn); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+
+  const cartArr = Object.entries(cart).map(([item_id, item]) => ({
+    item_id: parseInt(item_id), qty: item.qty
+  }));
+
+  try {
+    const resp = await fetch('/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, cart: cartArr })
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      // Build success list
+      let total = 0;
+      document.getElementById('successItems').innerHTML = Object.values(cart).map(item => {
+        total += item.total;
+        return `<div class="success-item">
+          <span>${item.name} × ${item.qty}</span>
+          <span style="font-family:var(--font-mono);font-weight:700;">₩${item.total.toLocaleString()}</span>
+        </div>`;
+      }).join('');
+      document.getElementById('successTotal').textContent = `${tx.total}: ₩${total.toLocaleString()}`;
+      document.getElementById('mainForm').style.display = 'none';
+      document.getElementById('successScreen').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      alert('오류: ' + (data.error || 'Unknown error'));
+    }
+  } catch(e) {
+    alert('오류가 발생했습니다. / Error: ' + e.message);
+  }
+  btn.disabled = false;
+}
+
+function resetForm() {
+  cart = {};
+  itemQtys = {};
+  document.getElementById('mainForm').style.display = 'block';
+  document.getElementById('successScreen').style.display = 'none';
+  document.getElementById('nameInput').value = '';
+  document.getElementById('phoneInput').value = '';
+  document.querySelectorAll('.item-card').forEach(card => {
+    card.classList.remove('in-cart');
+    const id = card.dataset.id;
+    itemQtys[id] = 1;
+    const qtyEl = document.getElementById(`qty-${id}`);
+    if (qtyEl) qtyEl.textContent = '1';
+    const btn = document.getElementById(`add-${id}`);
+    if (btn) btn.textContent = tx.add_to_cart;
+  });
+  renderCart();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Reload to refresh stock counts
+  setTimeout(() => location.reload(), 300);
+}
+</script>
+{% endblock %}

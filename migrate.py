@@ -63,6 +63,14 @@ for name, price in price_fixes.items():
     conn.execute("UPDATE items SET price=? WHERE name LIKE ?", (price, f"%{name}%"))
     print(f"Fixed price: {name} → ₩{price:,}")
 
+# Fix Blue Yeti name and brand
+conn.execute("UPDATE items SET name='Blue Yeti A00104 마이크', name_en='Blue Yeti A00104 Microphone', brand='Blue Yeti' WHERE name LIKE '%Yeti%' OR name LIKE '%Blue Yeti%'")
+print("Fixed Blue Yeti name and brand")
+
+# Fix binding machine category
+conn.execute("UPDATE items SET category='가구', category_en='Furniture' WHERE name LIKE '%제본기%'")
+print("Fixed binding machine category to 가구")
+
 conn.commit()
 conn.close()
 print("Migration complete.")

@@ -45,12 +45,15 @@ def init_db():
             CREATE TABLE IF NOT EXISTS items (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 category TEXT NOT NULL,
+                category_en TEXT,
                 name TEXT NOT NULL,
+                name_en TEXT,
                 brand TEXT,
                 qty_total INTEGER NOT NULL,
                 qty_available INTEGER NOT NULL,
                 price INTEGER NOT NULL,
-                notes TEXT
+                notes TEXT,
+                notes_en TEXT
             )
         """)
         # Orders
@@ -75,10 +78,11 @@ def init_db():
         if count == 0:
             for item in ITEMS:
                 db.execute(
-                    """INSERT INTO items (category, name, brand, qty_total, qty_available, price, notes)
-                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                    (item["category"], item["name"], item["brand"],
-                     item["qty"], item["qty"], item["price"], item["notes"])
+                    """INSERT INTO items (category, category_en, name, name_en, brand, qty_total, qty_available, price, notes, notes_en)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (item["category"], item.get("category_en", ""), item["name"], item.get("name_en", ""),
+                     item["brand"], item["qty"], item["qty"], item["price"],
+                     item["notes"], item.get("notes_en", ""))
                 )
             db.commit()
 
